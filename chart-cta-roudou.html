@@ -168,18 +168,39 @@
 .bnv-option {
   display: flex;
   align-items: center;
-  gap: .65rem;
+  gap: .55rem;
   width: 100%;
   text-align: left;
   background: #ffffff;
   border: 2px solid #d5e3f5;
   border-radius: 9px;
-  padding: .75rem 1rem;
+  padding: .65rem .85rem;
   cursor: pointer;
+  min-height: 56px;
+  line-height: 1.45;
+  overflow-wrap: break-word;
+  word-break: normal;
   transition: border-color .15s, background .15s, transform .1s;
   font-size: .875rem;
   color: #2a2a2a;
   font-family: inherit;
+}
+
+/* col-3: 3列ボタン専用（フォント小・パディング詰め） */
+.bnv-options.col-3 .bnv-option {
+  font-size: .8rem;
+  padding: .55rem .6rem;
+  gap: .4rem;
+  min-height: 54px;
+}
+.bnv-options.col-3 .bnv-opt-indicator {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+.bnv-options.col-3 .bnv-option.is-selected .bnv-opt-indicator::after {
+  width: 6px;
+  height: 6px;
 }
 .bnv-option:hover {
   border-color: #2d7dd2;
@@ -545,6 +566,20 @@
   }
   .bnv-options.col-3 {
     grid-template-columns: 1fr 1fr;
+  }
+  .bnv-options.col-3 .bnv-option {
+    font-size: .875rem;
+    padding: .65rem .75rem;
+    gap: .5rem;
+    min-height: 56px;
+  }
+  .bnv-options.col-3 .bnv-opt-indicator {
+    width: 17px;
+    height: 17px;
+  }
+  .bnv-options.col-3 .bnv-option.is-selected .bnv-opt-indicator::after {
+    width: 7px;
+    height: 7px;
   }
   .bnv-header-title {
     font-size: .9rem;
