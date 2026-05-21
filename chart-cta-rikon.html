@@ -160,6 +160,9 @@
 .bnv-options.col-2 {
   grid-template-columns: 1fr 1fr;
 }
+.bnv-options.col-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
 
 /* ===== 選択肢ボタン ===== */
 .bnv-option {
@@ -464,6 +467,9 @@
   .bnv-options.col-2 {
     grid-template-columns: 1fr;
   }
+  .bnv-options.col-3 {
+    grid-template-columns: 1fr 1fr;
+  }
   .bnv-header-title {
     font-size: .9rem;
   }
@@ -653,14 +659,16 @@ const CONFIGS = {
       ]
     },
     step2: {
-      label: '②契約書類',
-      question: '債権に関する契約書類はありますか？',
-      type: 'radio',
-      options: [
-        'ある',
-        'ない',
-        '不明'
-      ]
+      label: '②金額・書類',
+      type: 'dual',
+      sub1: {
+        question: '債権金額はおおよそいくらですか？',
+        options: ['50万円未満', '50〜100万円', '100〜300万円', '300万円超', 'わからない']
+      },
+      sub2: {
+        question: '債権に関する契約書類はありますか？',
+        options: ['ある', 'ない', '不明']
+      }
     }
   },
 
@@ -722,6 +730,7 @@ const CONFIGS = {
         'IT・ネット法務',
         '逮捕・犯罪歴の記事',
         '記事・検索結果の削除',
+        'トレント問題',
         'その他'
       ]
     }
@@ -743,15 +752,43 @@ const CONFIGS = {
     step2: {
       label: '②相談内容',
       question: '相談したい内容を教えてください',
-      type: 'radio',
+      type: 'select',
       options: [
+        '会社設立',
+        'コーポレートガバナンス・コンプライアンス',
+        'フランチャイズ',
+        '許認可申請',
+        '顧問弁護士契約',
+        'IT・ネット法務',
+        '個人情報保護法',
+        '情報漏洩対策',
+        '削除請求・風評被害対策',
+        '人事・労務',
+        '社員の解雇・退職勧奨',
+        '雇用契約書・就業規則作成',
+        '取締役解任対応',
+        'M&A・組織再編',
+        '事業承継・相続対策',
+        '契約法務',
         '契約書作成・リーガルチェック',
-        '人事・労務・解雇・ハラスメント',
-        '知的財産・特許・IT法務',
-        'M&A・事業承継・組織再編',
-        '紛争・訴訟・損害賠償',
-        'コンプライアンス・不祥事対応',
-        '債権回収・与信管理',
+        '英文契約書',
+        '下請法・取適法',
+        '金融商品取引',
+        '特定商品取引',
+        '独占禁止法',
+        '国際法務・渉外法務',
+        '海外展開',
+        'IPO・株式上場支援',
+        '事業再生・破産・清算',
+        'カスハラ・クレーム対応',
+        '不祥事・企業犯罪対応',
+        '知的財産・特許',
+        '訴訟・紛争解決',
+        '損害賠償請求',
+        '税務業務',
+        'エンターテインメント法務',
+        '不動産・建築トラブル',
+        '債権回収',
         'その他'
       ]
     }
@@ -866,12 +903,16 @@ class BnvChart {
   }
 
   _renderStep() {
-    switch (this.state.step) {
-      case 1: return this._renderQ(1, this.cfg.step1,     this.state.ans1);
-      case 2: return this._renderQ(2, this._step2cfg(),   this.state.ans2);
-      case 3: return this._renderUrgency();
-      case 4: return this._renderFinal();
+    const { step } = this.state;
+    const s2cfg    = this._step2cfg();
+    if (step === 1) return this._renderQ(1, this.cfg.step1, this.state.ans1);
+    if (step === 2) {
+      if (s2cfg.type === 'dual')   return this._renderDual(s2cfg);
+      if (s2cfg.type === 'select') return this._renderSelect(s2cfg);
+      return this._renderQ(2, s2cfg, this.state.ans2);
     }
+    if (step === 3) return this._renderUrgency();
+    if (step === 4) return this._renderFinal();
   }
 
   // =====================================================================
@@ -879,7 +920,7 @@ class BnvChart {
   // =====================================================================
   _renderQ(stepNo, cfg, current) {
     const isCheck = cfg.type === 'checkbox';
-    const useCol2 = !isCheck && cfg.options.length <= 4;
+    const useCol3 = cfg.options.length >= 2;
     const hasNext = isCheck;                 // チェックのみ「次へ」ボタンを表示
     const noSel   = isCheck && current.length === 0;
 
@@ -896,7 +937,7 @@ class BnvChart {
     return `
       <div class="bnv-step-no">ステップ ${stepNo} / 4</div>
       <div class="bnv-question">${cfg.question}</div>
-      <div class="bnv-options ${useCol2 ? 'col-2' : ''}" id="bnv-opts">${opts}</div>
+      <div class="bnv-options ${useCol3 ? 'col-3' : ''}" id="bnv-opts">${opts}</div>
       <div class="bnv-nav">
         ${stepNo > 1
           ? `<button class="bnv-btn-back" id="bnv-back">← 前の質問に戻る</button>`
@@ -1017,7 +1058,18 @@ class BnvChart {
     this.el.querySelectorAll('.bnv-option').forEach(btn => {
       btn.addEventListener('click', () => {
         const val    = btn.dataset.val;
+        const group  = btn.dataset.group;
         const ansKey = step === 1 ? 'ans1' : 'ans2';
+
+        // dual型: グループ別に ans2[0]/ans2[1] に格納・自動進行なし
+        if (group) {
+          const arr = [...(this.state.ans2 || [])];
+          if (group === 'sub1') arr[0] = val;
+          else                  arr[1] = val;
+          this.state.ans2 = arr;
+          this._render();
+          return;
+        }
 
         if (isCheck) {
           // チェックボックス: トグル
@@ -1036,6 +1088,18 @@ class BnvChart {
         }
       });
     });
+
+    // select型: 自動進行
+    const selEl = this.el.querySelector('#bnv-sel');
+    if (selEl) {
+      selEl.addEventListener('change', () => {
+        if (!selEl.value) return;
+        this.state.ans2 = [selEl.value];
+        this.state.step++;
+        this._render();
+        this._scrollToTop();
+      });
+    }
 
     // 「次へ」ボタン（チェックボックス用）
     const nextBtn = this.el.querySelector('#bnv-next');
