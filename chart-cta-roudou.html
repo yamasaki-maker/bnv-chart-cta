@@ -192,6 +192,7 @@
   padding: .55rem .6rem;
   gap: .4rem;
   min-height: 54px;
+  height: 100%;
 }
 .bnv-options.col-3 .bnv-opt-indicator {
   width: 15px;
@@ -477,7 +478,6 @@
   line-height: 1.8;
 }
 
-/* ===== もっと見るトグル ===== */
 /* ===== dual ステップ ===== */
 .bnv-dual-sub-q {
   font-size: .85rem;
@@ -524,32 +524,49 @@
   outline: none;
   border-color: #2d7dd2;
 }
-.bnv-opt-collapsed {
-  display: none;
+/* ===== peek コンテナ（もっと見る） ===== */
+.bnv-opts-peek-wrap {
+  position: relative;
 }
-.bnv-opt-collapsed.is-visible {
-  display: flex;
+.bnv-opts-peek-wrap .bnv-options {
+  max-height: 155px;
+  overflow: hidden;
+  transition: max-height .4s ease;
+}
+.bnv-opts-peek-wrap.is-expanded .bnv-options {
+  max-height: 2000px;
+}
+.bnv-peek-fade {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 64px;
+  background: linear-gradient(to bottom, rgba(255,255,255,0), #ffffff);
+  pointer-events: none;
+  transition: opacity .3s;
+}
+.bnv-opts-peek-wrap.is-expanded .bnv-peek-fade {
+  opacity: 0;
 }
 .bnv-more-toggle {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: .4rem;
+  gap: .35rem;
   width: 100%;
-  padding: .65rem 1rem;
+  padding: .55rem .8rem;
   margin-top: .4rem;
-  background: #f4f8ff;
-  border: 1.5px dashed #b0c8e8;
+  background: none;
+  border: 1.5px solid #b0c8e8;
   border-radius: 8px;
   color: #2d7dd2;
-  font-size: .83rem;
+  font-size: .85rem;
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
   transition: background .15s, border-color .15s;
 }
 .bnv-more-toggle:hover {
-  background: #e8f2ff;
+  background: #f0f6ff;
   border-color: #2d7dd2;
 }
 
@@ -719,7 +736,7 @@ const CONFIGS = {
       label: '①相談内容',
       question: '相談・依頼したいことを教えてください（複数選択可）',
       type: 'checkbox',
-      maxVisible: 4,
+      maxVisible: 6,
       options: [
         'パワハラ',
         'セクハラ',
@@ -1033,34 +1050,35 @@ class BnvChart {
   //  質問ステップ（Step1 / Step2 共通）
   // =====================================================================
   _renderQ(stepNo, cfg, current) {
-    const isCheck = cfg.type === 'checkbox';
-    const useCol3 = cfg.options.length >= 2;
-    const hasNext = isCheck;                 // チェックのみ「次へ」ボタンを表示
-    const noSel   = isCheck && current.length === 0;
-
+    const isCheck   = cfg.type === 'checkbox';
+    const useCol3   = cfg.options.length >= 2;
+    const hasNext   = isCheck;
+    const noSel     = isCheck && current.length === 0;
     const maxVis    = cfg.maxVisible;
     const needsMore = maxVis && cfg.options.length > maxVis;
-    const hiddenCnt = needsMore ? cfg.options.length - maxVis : 0;
 
-    const opts = cfg.options.map((opt, idx) => {
-      const sel       = current.includes(opt) ? 'is-selected' : '';
-      const chk       = isCheck ? 'is-checkbox' : '';
-      const collapsed = (needsMore && idx >= maxVis) ? 'bnv-opt-collapsed' : '';
+    const opts = cfg.options.map(opt => {
+      const sel = current.includes(opt) ? 'is-selected' : '';
+      const chk = isCheck ? 'is-checkbox' : '';
       return `
-        <button class="bnv-option ${chk} ${sel} ${collapsed}" data-val="${this._esc(opt)}">
+        <button class="bnv-option ${chk} ${sel}" data-val="${this._esc(opt)}">
           <span class="bnv-opt-indicator"></span>
           <span>${opt}</span>
         </button>`;
     }).join('');
 
+    const optGrid = `<div class="bnv-options ${useCol3 ? 'col-3' : ''}" id="bnv-opts">${opts}</div>`;
+    const optBlock = needsMore
+      ? `<div class="bnv-opts-peek-wrap" id="bnv-opts-wrap">${optGrid}<div class="bnv-peek-fade"></div></div>`
+      : optGrid;
     const moreBtn = needsMore
-      ? `<button class="bnv-more-toggle" id="bnv-more" data-count="${hiddenCnt}" data-expanded="false">▼ もっと見る（あと${hiddenCnt}件）</button>`
+      ? `<button class="bnv-more-toggle" id="bnv-more" data-expanded="false">🔻 もっと見る</button>`
       : '';
 
     return `
       <div class="bnv-step-no">ステップ ${stepNo} / 4</div>
       <div class="bnv-question">${cfg.question}</div>
-      <div class="bnv-options ${useCol3 ? 'col-3' : ''}" id="bnv-opts">${opts}</div>
+      ${optBlock}
       ${moreBtn}
       <div class="bnv-nav">
         ${stepNo > 1
@@ -1069,6 +1087,57 @@ class BnvChart {
         ${hasNext
           ? `<button class="bnv-btn-next" id="bnv-next" ${noSel ? 'disabled' : ''}>次へ →</button>`
           : `<span></span>`}
+      </div>`;
+  }
+
+
+  // =====================================================================
+  //  dual ステップ（Step2 / 2問同画面）
+  // =====================================================================
+  _renderDual(cfg) {
+    const selA = this.state.ans2[0] || null;
+    const selB = this.state.ans2[1] || null;
+    const bothFilled = selA && selB;
+    const mkOpts = (subCfg, groupKey, curSel) =>
+      subCfg.options.map(opt => {
+        const sel = opt === curSel ? 'is-selected' : '';
+        return `<button class="bnv-option ${sel}" data-val="${this._esc(opt)}" data-group="${groupKey}">
+          <span class="bnv-opt-indicator"></span><span>${opt}</span>
+        </button>`;
+      }).join('');
+    return `
+      <div class="bnv-step-no">ステップ 2 / 4</div>
+      <div class="bnv-dual-sub-q">${cfg.sub1.question}</div>
+      <div class="bnv-options col-3">${mkOpts(cfg.sub1, 'sub1', selA)}</div>
+      <hr class="bnv-dual-hr">
+      <div class="bnv-dual-sub-q">${cfg.sub2.question}</div>
+      <div class="bnv-options col-3">${mkOpts(cfg.sub2, 'sub2', selB)}</div>
+      <div class="bnv-nav">
+        <button class="bnv-btn-back" id="bnv-back">← 前の質問に戻る</button>
+        <button class="bnv-btn-next" id="bnv-next" ${bothFilled ? '' : 'disabled'}>次へ →</button>
+      </div>`;
+  }
+
+  // =====================================================================
+  //  select ステップ（Step2 / ドロップダウン）
+  // =====================================================================
+  _renderSelect(cfg) {
+    const cur = this.state.ans2[0] || '';
+    const opts = cfg.options.map(opt =>
+      `<option value="${this._esc(opt)}" ${opt === cur ? 'selected' : ''}>${opt}</option>`
+    ).join('');
+    return `
+      <div class="bnv-step-no">ステップ 2 / 4</div>
+      <div class="bnv-question">${cfg.question}</div>
+      <div class="bnv-select-wrap">
+        <select class="bnv-select" id="bnv-sel">
+          <option value="" disabled ${!cur ? 'selected' : ''}>選択してください</option>
+          ${opts}
+        </select>
+      </div>
+      <div class="bnv-nav">
+        <button class="bnv-btn-back" id="bnv-back">← 前の質問に戻る</button>
+        <span></span>
       </div>`;
   }
 
@@ -1246,19 +1315,15 @@ class BnvChart {
       });
     }
 
-    // 「もっと見る」トグル
+    // 「もっと見る」トグル（peekモード）
     const moreToggle = this.el.querySelector('#bnv-more');
     if (moreToggle) {
       moreToggle.addEventListener('click', () => {
+        const wrap = this.el.querySelector('#bnv-opts-wrap');
         const expanded = moreToggle.dataset.expanded === 'true';
-        const count    = moreToggle.dataset.count;
-        this.el.querySelectorAll('.bnv-opt-collapsed').forEach(el => {
-          el.classList.toggle('is-visible');
-        });
+        if (wrap) wrap.classList.toggle('is-expanded');
         moreToggle.dataset.expanded = String(!expanded);
-        moreToggle.textContent = expanded
-          ? `▼ もっと見る（あと${count}件）`
-          : '▲ 閉じる';
+        moreToggle.textContent = !expanded ? '🔺 閉じる' : '🔻 もっと見る';
       });
     }
 
