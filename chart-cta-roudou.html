@@ -453,6 +453,36 @@
   line-height: 1.8;
 }
 
+/* ===== もっと見るトグル ===== */
+.bnv-opt-collapsed {
+  display: none;
+}
+.bnv-opt-collapsed.is-visible {
+  display: flex;
+}
+.bnv-more-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+  width: 100%;
+  padding: .65rem 1rem;
+  margin-top: .4rem;
+  background: #f4f8ff;
+  border: 1.5px dashed #b0c8e8;
+  border-radius: 8px;
+  color: #2d7dd2;
+  font-size: .83rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background .15s, border-color .15s;
+}
+.bnv-more-toggle:hover {
+  background: #e8f2ff;
+  border-color: #2d7dd2;
+}
+
 /* ===== レスポンシブ ===== */
 @media (max-width: 480px) {
   .bnv-chart-cta {
@@ -602,6 +632,7 @@ const CONFIGS = {
       label: '①相談内容',
       question: '相談・依頼したいことを教えてください（複数選択可）',
       type: 'checkbox',
+      maxVisible: 4,
       options: [
         'パワハラ',
         'セクハラ',
@@ -609,6 +640,7 @@ const CONFIGS = {
         '給与未払い',
         '残業代未払い',
         '解雇予告',
+        '退職勧奨',
         '労働審判',
         '雇い止め',
         '労働災害',
@@ -884,20 +916,30 @@ class BnvChart {
     const hasNext = isCheck;                 // チェックのみ「次へ」ボタンを表示
     const noSel   = isCheck && current.length === 0;
 
-    const opts = cfg.options.map(opt => {
-      const sel = current.includes(opt) ? 'is-selected' : '';
-      const chk = isCheck ? 'is-checkbox' : '';
+    const maxVis    = cfg.maxVisible;
+    const needsMore = maxVis && cfg.options.length > maxVis;
+    const hiddenCnt = needsMore ? cfg.options.length - maxVis : 0;
+
+    const opts = cfg.options.map((opt, idx) => {
+      const sel       = current.includes(opt) ? 'is-selected' : '';
+      const chk       = isCheck ? 'is-checkbox' : '';
+      const collapsed = (needsMore && idx >= maxVis) ? 'bnv-opt-collapsed' : '';
       return `
-        <button class="bnv-option ${chk} ${sel}" data-val="${this._esc(opt)}">
+        <button class="bnv-option ${chk} ${sel} ${collapsed}" data-val="${this._esc(opt)}">
           <span class="bnv-opt-indicator"></span>
           <span>${opt}</span>
         </button>`;
     }).join('');
 
+    const moreBtn = needsMore
+      ? `<button class="bnv-more-toggle" id="bnv-more" data-count="${hiddenCnt}" data-expanded="false">▼ もっと見る（あと${hiddenCnt}件）</button>`
+      : '';
+
     return `
       <div class="bnv-step-no">ステップ ${stepNo} / 4</div>
       <div class="bnv-question">${cfg.question}</div>
       <div class="bnv-options ${useCol2 ? 'col-2' : ''}" id="bnv-opts">${opts}</div>
+      ${moreBtn}
       <div class="bnv-nav">
         ${stepNo > 1
           ? `<button class="bnv-btn-back" id="bnv-back">← 前の質問に戻る</button>`
@@ -1056,6 +1098,22 @@ class BnvChart {
         this.state.step--;
         this._render();
         this._scrollToTop();
+      });
+    }
+
+    // 「もっと見る」トグル
+    const moreToggle = this.el.querySelector('#bnv-more');
+    if (moreToggle) {
+      moreToggle.addEventListener('click', () => {
+        const expanded = moreToggle.dataset.expanded === 'true';
+        const count    = moreToggle.dataset.count;
+        this.el.querySelectorAll('.bnv-opt-collapsed').forEach(el => {
+          el.classList.toggle('is-visible');
+        });
+        moreToggle.dataset.expanded = String(!expanded);
+        moreToggle.textContent = expanded
+          ? `▼ もっと見る（あと${count}件）`
+          : '▲ 閉じる';
       });
     }
 
