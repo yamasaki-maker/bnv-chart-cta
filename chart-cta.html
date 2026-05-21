@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>弁護士メール相談チャートCTA</title>
+</head>
+<body>
+
+<!--
+=======================================================================
+  ベンナビ チャート式メール相談CTA コンポーネント
+=======================================================================
+  使い方:
+    <div class="bnv-chart-cta"
+         data-media="rikon"
+         data-lawyer="伊藤 英徳"
+         data-form-url="/offices/971/private_questions">
+    </div>
+
+  data-media 一覧:
+    rikon   ... ベンナビ離婚          (ricon-pro.com)
+    souzoku ... ベンナビ相続          (souzoku-pro.info)
+    jico    ... ベンナビ交通事故      (jico-pro.com)
+    keiji   ... ベンナビ刑事          (keiji-pro.com)
+    roudou  ... ベンナビ労働          (roudou-pro.com)
+    saiken  ... ベンナビ債権回収      (saiken-pro.com)
+    saimu   ... ベンナビ債務整理      (saimuseiri-pro.com)
+    it      ... ベンナビIT            (itbengo-pro.com)
+    houmu   ... 企業法務弁護士ナビ    (houmu-pro.com)
+    furin   ... ベンナビ不倫慰謝料    (furin-isharyou.ricon-pro.com)
+=======================================================================
+-->
+
+<!-- ▼ここから埋め込みコード（data-*を各記事に合わせて変更する） -->
+<div class="bnv-chart-cta"
+     data-media="rikon"
+     data-lawyer="伊藤 英徳"
+     data-form-url="/offices/971/private_questions">
+</div>
+<!-- ▲ここまで -->
+
+<style>
+/* ===== スコープリセット ===== */
+.bnv-chart-cta,
+.bnv-chart-cta * {
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+}
+.bnv-chart-cta {
+  font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #1a1a2e;
+  max-width: 600px;
+  margin: 2rem auto;
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 4px 24px rgba(0,0,0,.12);
+  overflow: hidden;
+  border: 1px solid #e0e8f4;
+}
+
+/* ===== ヘッダー ===== */
+.bnv-header {
+  background: linear-gradient(135deg, #0b3270 0%, #1a5db5 100%);
+  padding: 1.2rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+}
+.bnv-header-icon {
+  font-size: 1.6rem;
+  flex-shrink: 0;
+}
+.bnv-header-text {}
+.bnv-header-label {
+  font-size: .68rem;
+  letter-spacing: .1em;
+  color: rgba(255,255,255,.75);
+  text-transform: uppercase;
+  margin-bottom: .15rem;
+}
+.bnv-header-title {
+  font-size: .95rem;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.4;
+}
+
+/* ===== プログレスバー ===== */
+.bnv-progress-wrap {
+  background: #dce8f7;
+  height: 5px;
+}
+.bnv-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #2d7dd2, #4fa3e8);
+  transition: width .4s cubic-bezier(.4,0,.2,1);
+}
+
+/* ===== ステップナビ ===== */
+.bnv-step-nav {
+  display: flex;
+  background: #f4f8ff;
+  border-bottom: 1px solid #dce8f7;
+}
+.bnv-step-nav-item {
+  flex: 1;
+  text-align: center;
+  padding: .55rem .3rem;
+  font-size: .63rem;
+  font-weight: 600;
+  color: #aab8cf;
+  position: relative;
+  transition: color .2s;
+}
+.bnv-step-nav-item.is-done {
+  color: #2d7dd2;
+}
+.bnv-step-nav-item.is-active {
+  color: #0b3270;
+}
+.bnv-step-nav-item.is-active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 2px;
+  background: #0b3270;
+  border-radius: 2px 2px 0 0;
+}
+
+/* ===== メインボディ ===== */
+.bnv-body {
+  padding: 1.5rem;
+}
+.bnv-step-no {
+  font-size: .7rem;
+  font-weight: 700;
+  color: #2d7dd2;
+  letter-spacing: .05em;
+  margin-bottom: .5rem;
+}
+.bnv-question {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0d1f3c;
+  line-height: 1.55;
+  margin-bottom: 1.2rem;
+}
+
+/* ===== 選択肢グリッド ===== */
+.bnv-options {
+  display: grid;
+  gap: .55rem;
+}
+.bnv-options.col-2 {
+  grid-template-columns: 1fr 1fr;
+}
+.bnv-options.col-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+/* ===== 選択肢ボタン ===== */
+.bnv-option {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  width: 100%;
+  text-align: left;
+  background: #ffffff;
+  border: 2px solid #d5e3f5;
+  border-radius: 9px;
+  padding: .65rem .85rem;
+  cursor: pointer;
+  min-height: 56px;
+  line-height: 1.45;
+  overflow-wrap: break-word;
+  word-break: normal;
+  transition: border-color .15s, background .15s, transform .1s;
+  font-size: .875rem;
+  color: #2a2a2a;
+  font-family: inherit;
+}
+
+/* col-3: 3列ボタン専用（フォント小・パディング詰め） */
+.bnv-options.col-3 .bnv-option {
+  font-size: .8rem;
+  padding: .55rem .6rem;
+  gap: .4rem;
+  min-height: 54px;
+  height: 100%;
+}
+.bnv-options.col-3 .bnv-opt-indicator {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+.bnv-options.col-3 .bnv-option.is-selected .bnv-opt-indicator::after {
+  width: 6px;
+  height: 6px;
+}
+.bnv-option:hover {
+  border-color: #2d7dd2;
+  background: #f0f6ff;
+  transform: translateY(-1px);
+}
+.bnv-option:active {
+  transform: translateY(0);
+}
+.bnv-option.is-selected {
+  border-color: #0b3270;
+  background: #e6effd;
+  color: #0b3270;
+  font-weight: 700;
+}
+
+/* ラジオ/チェックのインジケーター */
+.bnv-opt-indicator {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid #c4d4ea;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .15s;
+}
+.bnv-option.is-selected .bnv-opt-indicator {
+  background: #0b3270;
+  border-color: #0b3270;
+}
+.bnv-option.is-selected .bnv-opt-indicator::after {
+  content: '';
+  width: 7px;
+  height: 7px;
+  background: #fff;
+  border-radius: 50%;
+  display: block;
+}
+/* チェックボックス型 */
+.bnv-option.is-checkbox .bnv-opt-indicator {
+  border-radius: 4px;
+}
+.bnv-option.is-checkbox.is-selected .bnv-opt-indicator::after {
+  content: '✓';
+  width: auto;
+  height: auto;
+  background: transparent;
+  border-radius: 0;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+/* ===== ナビゲーション ===== */
+.bnv-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1.3rem;
+  gap: .8rem;
+}
+.bnv-btn-back {
+  background: none;
+  border: none;
+  padding: .4rem 0;
+  font-size: .8rem;
+  color: #7a8fa8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  font-family: inherit;
+  transition: color .15s;
+}
+.bnv-btn-back:hover {
+  color: #3a5070;
+}
+.bnv-btn-next {
+  flex: 1;
+  background: #0b3270;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: .85rem 1.5rem;
+  font-size: .9rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background .15s, transform .1s;
+}
+.bnv-btn-next:hover {
+  background: #1a4fa0;
+  transform: translateY(-1px);
+}
+.bnv-btn-next:disabled {
+  background: #b0bed0;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ===== 緊急度ステップ ===== */
+.bnv-urgency-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .8rem;
+  margin-top: .5rem;
+}
+.bnv-urgency-btn {
+  border: 2px solid #d5e3f5;
+  border-radius: 12px;
+  padding: 1.2rem .8rem;
+  cursor: pointer;
+  background: #fff;
+  text-align: center;
+  transition: border-color .15s, background .15s, transform .1s;
+  font-family: inherit;
+}
+.bnv-urgency-btn:hover {
+  border-color: #2d7dd2;
+  background: #f0f6ff;
+  transform: translateY(-2px);
+}
+.bnv-urgency-btn:active {
+  transform: translateY(0);
+}
+.bnv-urgency-btn.is-selected {
+  border-color: #0b3270;
+  background: #e6effd;
+}
+.bnv-urgency-icon {
+  font-size: 1.8rem;
+  margin-bottom: .5rem;
+  display: block;
+}
+.bnv-urgency-label {
+  font-size: .875rem;
+  font-weight: 700;
+  color: #0d1f3c;
+  line-height: 1.4;
+}
+.bnv-urgency-sub {
+  font-size: .68rem;
+  color: #7a8fa8;
+  margin-top: .3rem;
+  line-height: 1.5;
+}
+
+/* ===== 最終ステップ ===== */
+.bnv-summary {
+  background: #f0f6ff;
+  border-left: 4px solid #2d7dd2;
+  border-radius: 0 8px 8px 0;
+  padding: .9rem 1rem;
+  margin-bottom: 1.3rem;
+}
+.bnv-summary-title {
+  font-size: .75rem;
+  font-weight: 700;
+  color: #0b3270;
+  margin-bottom: .5rem;
+}
+.bnv-summary-row {
+  font-size: .8rem;
+  color: #3a5070;
+  line-height: 1.7;
+  display: flex;
+  align-items: flex-start;
+  gap: .4rem;
+}
+.bnv-summary-row::before {
+  content: '✓';
+  color: #2d7dd2;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: .1rem;
+}
+
+/* フォーム */
+.bnv-form-group {
+  margin-bottom: .9rem;
+}
+.bnv-label {
+  display: block;
+  font-size: .78rem;
+  font-weight: 700;
+  color: #2a3a52;
+  margin-bottom: .35rem;
+}
+.bnv-label .req {
+  color: #e63946;
+  margin-left: .2rem;
+}
+.bnv-input {
+  width: 100%;
+  border: 1.5px solid #c8d8ec;
+  border-radius: 7px;
+  padding: .7rem .9rem;
+  font-size: .9rem;
+  font-family: inherit;
+  color: #1a1a2e;
+  background: #fff;
+  transition: border-color .15s, box-shadow .15s;
+  -webkit-appearance: none;
+}
+.bnv-input:focus {
+  outline: none;
+  border-color: #2d7dd2;
+  box-shadow: 0 0 0 3px rgba(45,125,210,.12);
+}
+.bnv-input::placeholder {
+  color: #aab8cf;
+}
+
+/* 送信ボタン */
+.bnv-submit {
+  width: 100%;
+  background: linear-gradient(135deg, #d93025 0%, #e85444 100%);
+  color: #fff;
+  border: none;
+  border-radius: 9px;
+  padding: 1rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  line-height: 1.4;
+  transition: filter .15s, transform .1s;
+  margin-top: .3rem;
+}
+.bnv-submit:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+.bnv-submit:active {
+  transform: translateY(0);
+}
+
+/* 安心訴求 */
+.bnv-assurance {
+  display: flex;
+  justify-content: center;
+  gap: .8rem 1.2rem;
+  flex-wrap: wrap;
+  margin-top: .8rem;
+}
+.bnv-assurance-item {
+  font-size: .7rem;
+  color: #7a8fa8;
+  display: flex;
+  align-items: center;
+  gap: .25rem;
+}
+
+/* ===== 完了画面 ===== */
+.bnv-complete {
+  text-align: center;
+  padding: 2rem 1rem 2.5rem;
+}
+.bnv-complete-icon {
+  font-size: 3rem;
+  margin-bottom: .8rem;
+}
+.bnv-complete-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0b3270;
+  margin-bottom: .6rem;
+}
+.bnv-complete-text {
+  font-size: .875rem;
+  color: #5a6a82;
+  line-height: 1.8;
+}
+
+/* ===== もっと見るトグル ===== */
+/* ===== dual ステップ ===== */
+.bnv-dual-sub-q {
+  font-size: .85rem;
+  font-weight: 700;
+  color: #2d7dd2;
+  margin: 1rem 0 .5rem;
+}
+.bnv-dual-hr {
+  border: none;
+  border-top: 1px dashed #dce8f7;
+  margin: 1rem 0 .8rem;
+}
+
+/* ===== select型 ===== */
+.bnv-select-wrap {
+  position: relative;
+  margin-bottom: .2rem;
+}
+.bnv-select-wrap::after {
+  content: '\25BC';
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #5a6a82;
+  pointer-events: none;
+  font-size: .7rem;
+}
+.bnv-select {
+  width: 100%;
+  padding: .9rem 2.5rem .9rem 1rem;
+  border: 2px solid #d5e3f5;
+  border-radius: 9px;
+  background: #fff;
+  font-family: inherit;
+  font-size: .875rem;
+  color: #2a2a2a;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+  transition: border-color .15s;
+}
+.bnv-select:focus {
+  outline: none;
+  border-color: #2d7dd2;
+}
+/* ===== peek コンテナ（もっと見る） ===== */
+.bnv-opts-peek-wrap {
+  position: relative;
+}
+.bnv-opts-peek-wrap .bnv-options {
+  max-height: 155px;
+  overflow: hidden;
+  transition: max-height .4s ease;
+}
+.bnv-opts-peek-wrap.is-expanded .bnv-options {
+  max-height: 2000px;
+}
+.bnv-peek-fade {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 64px;
+  background: linear-gradient(to bottom, rgba(255,255,255,0), #ffffff);
+  pointer-events: none;
+  transition: opacity .3s;
+}
+.bnv-opts-peek-wrap.is-expanded .bnv-peek-fade {
+  opacity: 0;
+}
+.bnv-more-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .35rem;
+  width: 100%;
+  padding: .55rem .8rem;
+  margin-top: .4rem;
+  background: none;
+  border: 1.5px solid #b0c8e8;
+  border-radius: 8px;
+  color: #2d7dd2;
+  font-size: .85rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background .15s, border-color .15s;
+}
+.bnv-more-toggle:hover {
+  background: #f0f6ff;
+  border-color: #2d7dd2;
+}
+
+/* ===== レスポンシブ ===== */
+@media (max-width: 480px) {
+  .bnv-chart-cta {
+    border-radius: 0;
+    margin: 0;
+    border-left: none;
+    border-right: none;
+  }
+  .bnv-options.col-2 {
+    grid-template-columns: 1fr;
+  }
+  .bnv-options.col-3 {
+    grid-template-columns: 1fr 1fr;
+  }
+  .bnv-options.col-3 .bnv-option {
+    font-size: .875rem;
+    padding: .65rem .75rem;
+    gap: .5rem;
+    min-height: 56px;
+  }
+  .bnv-options.col-3 .bnv-opt-indicator {
+    width: 17px;
+    height: 17px;
+  }
+  .bnv-options.col-3 .bnv-option.is-selected .bnv-opt-indicator::after {
+    width: 7px;
+    height: 7px;
+  }
+  .bnv-header-title {
+    font-size: .9rem;
+  }
+  .bnv-question {
+    font-size: .95rem;
+  }
+}
+</style>
+
+<script>
+(function () {
+'use strict';
+
+// =====================================================================
+//  全媒体設定（実際のフォームQ1・Q2を使用）
+// =====================================================================
+const CONFIGS = {
+
+  rikon: {
+    icon: '⚖️',
+    title: '離婚問題について弁護士にメール相談',
+    step1: {
+      label: '①現在の状況',
+      question: '現在の状況を教えてください',
+      type: 'radio',
+      options: [
+        '離婚を決意している',
+        '既に離婚している',
+        '離婚を迫られているが離婚したくない',
+        '離婚するかどうか迷っている',
+        'その他'
+      ]
+    },
+    step2: {
+      label: '②合意の状況',
+      question: '相手方との合意状況はどうですか？',
+      type: 'radio',
+      options: [
+        '双方合意している',
+        '相手が離婚に応じない',
+        'その他'
+      ]
+    }
+  },
+
+  souzoku: {
+    icon: '📜',
+    title: '相続問題について弁護士にメール相談',
+    step1: {
+      label: '①相続の状況',
+      question: '現在の状況を教えてください',
+      type: 'radio',
+      options: [
+        '相続発生前（生前対策・準備）',
+        '相続発生後（手続き・トラブル）',
+        '不明・どちらか分からない'
+      ]
+    },
+    step2: {
+      label: '②遺産の種類',
+      question: '遺産の種類を教えてください（複数選択可）',
+      type: 'checkbox',
+      options: [
+        '不動産（土地・建物）',
+        '現金・預貯金',
+        '株式・国債・社債',
+        '動産（車・宝石・貴金属など）',
+        'マイナスの財産（借金など）',
+        'その他特殊な財産（著作権・特許権など）',
+        '不明'
+      ]
+    }
+  },
+
+  jico: {
+    icon: '🚗',
+    title: '交通事故について弁護士にメール相談',
+    step1: {
+      label: '①事故の種類',
+      question: '事故の種類を教えてください',
+      type: 'radio',
+      options: [
+        '人身事故（車両被害あり）',
+        '人身事故（車両被害なし）',
+        '物損事故（ケガなし）',
+        '死亡事故',
+        '自損事故',
+        'その他'
+      ]
+    },
+    step2: {
+      label: '②あなたの立場',
+      question: 'あなたは事故の',
+      type: 'radio',
+      options: [
+        '被害者',
+        '加害者側',
+        'その他'
+      ]
+    }
+  },
+
+  keiji: {
+    icon: '🔒',
+    title: '刑事事件について弁護士にメール相談',
+    step1: {
+      label: '①ご相談の立場',
+      question: 'あなたは刑事事件の',
+      type: 'radio',
+      options: [
+        '加害者（ご本人）',
+        '加害者（ご家族・親族）',
+        'その他'
+      ]
+    },
+    step2: {
+      label: '②現在の状況',
+      question: '現在の状況を教えてください',
+      type: 'radio',
+      options: [
+        '在宅捜査中',
+        '警察で取り調べ中',
+        '検察で取り調べ中',
+        '起訴後・裁判中',
+        '逮捕・勾留中',
+        'その他'
+      ]
+    }
+  },
+
+  roudou: {
+    icon: '💼',
+    title: '労働問題について弁護士にメール相談',
+    step1: {
+      label: '①相談内容',
+      question: '相談・依頼したいことを教えてください（複数選択可）',
+      type: 'checkbox',
+      maxVisible: 6,
+      options: [
+        'パワハラ',
+        'セクハラ',
+        '不当解雇',
+        '給与未払い',
+        '残業代未払い',
+        '解雇予告',
+        '退職勧奨',
+        '労働審判',
+        '雇い止め',
+        '労働災害',
+        '退職代行',
+        '退職金未払い',
+        '内定取消',
+        'その他'
+      ]
+    },
+    step2: {
+      label: '②雇用形態',
+      question: '現在の雇用形態を教えてください',
+      type: 'radio',
+      options: [
+        '正社員',
+        '会社役員',
+        '契約社員',
+        '派遣社員',
+        'アルバイト・パート',
+        'その他'
+      ]
+    }
+  },
+
+  saiken: {
+    icon: '💰',
+    title: '債権回収について弁護士にメール相談',
+    step1: {
+      label: '①債権の種類',
+      question: '回収したい債権の種類を教えてください',
+      type: 'radio',
+      options: [
+        '売掛金',
+        '立替金',
+        '借金・貸金',
+        '業務請負・委託代金',
+        '家賃・地代',
+        '養育費',
+        '慰謝料',
+        '給料・賃金・残業代',
+        '投資詐欺被害',
+        'その他の債権'
+      ]
+    },
+    step2: {
+      label: '②金額・書類',
+      type: 'dual',
+      sub1: {
+        question: '債権金額はおおよそいくらですか？',
+        options: ['50万円未満', '50〜100万円', '100〜300万円', '300万円超', 'わからない']
+      },
+      sub2: {
+        question: '債権に関する契約書類はありますか？',
+        options: ['ある', 'ない', '不明']
+      }
+    }
+  },
+
+  saimu: {
+    icon: '🏦',
+    title: '債務整理について弁護士にメール相談',
+    step1: {
+      label: '①借金の状況',
+      question: '借金の総額はおおよそいくらですか？',
+      type: 'radio',
+      options: [
+        '50〜100万円',
+        '101〜150万円',
+        '151〜200万円',
+        '201〜300万円',
+        '301〜500万円',
+        '500万円以上',
+        'わからない'
+      ]
+    },
+    step2: {
+      label: '②月々の返済',
+      question: '月々の返済額はおおよそいくらですか？',
+      type: 'radio',
+      options: [
+        '5万円以下',
+        '5〜10万円',
+        '11〜20万円',
+        '21万円以上'
+      ]
+    }
+  },
+
+  it: {
+    icon: '💻',
+    title: 'IT・ネットトラブルについて弁護士にメール相談',
+    step1: {
+      label: '①ご相談者',
+      question: 'ご相談者様は',
+      type: 'radio',
+      options: [
+        '個人',
+        '法人・事業者',
+        'その他'
+      ]
+    },
+    step2: {
+      label: '②お困りのこと',
+      question: 'お困りのことを教えてください（複数選択可）',
+      type: 'checkbox',
+      options: [
+        '掲示板・SNS削除',
+        '口コミ・レビュー削除',
+        '発信者情報開示請求',
+        'ネット誹謗中傷・名誉毀損',
+        '私的情報・画像流出',
+        'リベンジポルノ',
+        '著作権・商標権侵害',
+        'IT・ネット法務',
+        '逮捕・犯罪歴の記事',
+        '記事・検索結果の削除',
+        'トレント問題',
+        'その他'
+      ]
+    }
+  },
+
+  houmu: {
+    icon: '🏢',
+    title: '企業法務について弁護士にメール相談',
+    step1: {
+      label: '①事業形態',
+      question: '事業形態を教えてください',
+      type: 'radio',
+      options: [
+        '企業・法人',
+        '個人事業主・自営業',
+        'その他'
+      ]
+    },
+    step2: {
+      label: '②相談内容',
+      question: '相談したい内容を教えてください',
+      type: 'select',
+      options: [
+        '会社設立',
+        'コーポレートガバナンス・コンプライアンス',
+        'フランチャイズ',
+        '許認可申請',
+        '顧問弁護士契約',
+        'IT・ネット法務',
+        '個人情報保護法',
+        '情報漏洩対策',
+        '削除請求・風評被害対策',
+        '人事・労務',
+        '社員の解雇・退職勧奨',
+        '雇用契約書・就業規則作成',
+        '取締役解任対応',
+        'M&A・組織再編',
+        '事業承継・相続対策',
+        '契約法務',
+        '契約書作成・リーガルチェック',
+        '英文契約書',
+        '下請法・取適法',
+        '金融商品取引',
+        '特定商品取引',
+        '独占禁止法',
+        '国際法務・渉外法務',
+        '海外展開',
+        'IPO・株式上場支援',
+        '事業再生・破産・清算',
+        'カスハラ・クレーム対応',
+        '不祥事・企業犯罪対応',
+        '知的財産・特許',
+        '訴訟・紛争解決',
+        '損害賠償請求',
+        '税務業務',
+        'エンターテインメント法務',
+        '不動産・建築トラブル',
+        '債権回収',
+        'その他'
+      ]
+    }
+  },
+
+  furin: {
+    icon: '💔',
+    title: '不倫慰謝料について弁護士にメール相談',
+    step1: {
+      label: '①相談の立場',
+      question: '現在の状況を教えてください',
+      type: 'radio',
+      options: [
+        '慰謝料を請求したい',
+        '慰謝料を請求された',
+        'その他'
+      ]
+    },
+    // 不倫はQ1の回答で分岐
+    step2_claim: {
+      label: '②請求したい金額',
+      question: '請求したい金額はおおよそいくらですか？',
+      type: 'radio',
+      options: [
+        '100万円未満',
+        '100〜200万円',
+        '200〜300万円',
+        '300万円超',
+        'まだ相談したい',
+        'その他'
+      ]
+    },
+    step2_accused: {
+      label: '②請求されている金額',
+      question: '請求されている金額はいくらですか？',
+      type: 'radio',
+      options: [
+        '100万円未満',
+        '100〜200万円',
+        '200〜300万円',
+        '300万円超',
+        'まだ提示前',
+        'その他'
+      ]
+    }
+  }
+
+}; // end CONFIGS
+
+
+// =====================================================================
+//  チャートクラス
+// =====================================================================
+class BnvChart {
+  constructor(el) {
+    this.el      = el;
+    this.media   = el.dataset.media   || 'rikon';
+    this.lawyer  = el.dataset.lawyer  || '弁護士';
+    this.formUrl = el.dataset.formUrl || '';
+    this.cfg     = CONFIGS[this.media] || CONFIGS.rikon;
+    this.state   = { step: 1, ans1: [], ans2: [], ans3: '' };
+    this._render();
+  }
+
+  // 不倫媒体のステップ2設定を条件分岐
+  _step2cfg() {
+    if (this.media === 'furin') {
+      return this.state.ans1.includes('慰謝料を請求したい')
+        ? this.cfg.step2_claim
+        : this.cfg.step2_accused;
+    }
+    return this.cfg.step2;
+  }
+
+  // =====================================================================
+  //  メインレンダリング
+  // =====================================================================
+  _render() {
+    const { step } = this.state;
+    const pct      = Math.round((step / 4) * 100);
+    const labels   = [
+      this.cfg.step1.label,
+      this._step2cfg().label,
+      '③緊急度',
+      '④送信'
+    ];
+
+    this.el.innerHTML = `
+      <div class="bnv-header">
+        <div class="bnv-header-icon">${this.cfg.icon}</div>
+        <div class="bnv-header-text">
+          <div class="bnv-header-label">無料メール相談</div>
+          <div class="bnv-header-title">${this.cfg.title}</div>
+        </div>
+      </div>
+      <div class="bnv-progress-wrap">
+        <div class="bnv-progress-fill" style="width:${pct}%"></div>
+      </div>
+      <div class="bnv-step-nav">
+        ${labels.map((l, i) => {
+          const s = i + 1;
+          let cls = 'bnv-step-nav-item';
+          if (s < step)  cls += ' is-done';
+          if (s === step) cls += ' is-active';
+          return `<div class="${cls}">${l}</div>`;
+        }).join('')}
+      </div>
+      <div class="bnv-body">${this._renderStep()}</div>
+    `;
+
+    this._bind();
+  }
+
+  _renderStep() {
+    const { step } = this.state;
+    const s2cfg    = this._step2cfg();
+    if (step === 1) return this._renderQ(1, this.cfg.step1, this.state.ans1);
+    if (step === 2) {
+      if (s2cfg.type === 'dual')   return this._renderDual(s2cfg);
+      if (s2cfg.type === 'select') return this._renderSelect(s2cfg);
+      return this._renderQ(2, s2cfg, this.state.ans2);
+    }
+    if (step === 3) return this._renderUrgency();
+    if (step === 4) return this._renderFinal();
+  }
+
+  // =====================================================================
+  //  質問ステップ（Step1 / Step2 共通）
+  // =====================================================================
+  _renderQ(stepNo, cfg, current) {
+    const isCheck   = cfg.type === 'checkbox';
+    const useCol3   = cfg.options.length >= 2;
+    const hasNext   = isCheck;
+    const noSel     = isCheck && current.length === 0;
+    const maxVis    = cfg.maxVisible;
+    const needsMore = maxVis && cfg.options.length > maxVis;
+
+    const opts = cfg.options.map(opt => {
+      const sel = current.includes(opt) ? 'is-selected' : '';
+      const chk = isCheck ? 'is-checkbox' : '';
+      return `
+        <button class="bnv-option ${chk} ${sel}" data-val="${this._esc(opt)}">
+          <span class="bnv-opt-indicator"></span>
+          <span>${opt}</span>
+        </button>`;
+    }).join('');
+
+    const optGrid = `<div class="bnv-options ${useCol3 ? 'col-3' : ''}" id="bnv-opts">${opts}</div>`;
+    const optBlock = needsMore
+      ? `<div class="bnv-opts-peek-wrap" id="bnv-opts-wrap">${optGrid}<div class="bnv-peek-fade"></div></div>`
+      : optGrid;
+    const moreBtn = needsMore
+      ? `<button class="bnv-more-toggle" id="bnv-more" data-expanded="false">🔻 もっと見る</button>`
+      : '';
+
+    return `
+      <div class="bnv-step-no">ステップ ${stepNo} / 4</div>
+      <div class="bnv-question">${cfg.question}</div>
+      ${optBlock}
+      ${moreBtn}
+      <div class="bnv-nav">
+        ${stepNo > 1
+          ? `<button class="bnv-btn-back" id="bnv-back">← 前の質問に戻る</button>`
+          : `<span></span>`}
+        ${hasNext
+          ? `<button class="bnv-btn-next" id="bnv-next" ${noSel ? 'disabled' : ''}>次へ →</button>`
+          : `<span></span>`}
+      </div>`;
+  }
+
+  // =====================================================================
+  //  dual ステップ（Step2 / 2問同画面）
+  // =====================================================================
+  _renderDual(cfg) {
+    const selA = this.state.ans2[0] || null;
+    const selB = this.state.ans2[1] || null;
+    const bothFilled = selA && selB;
+    const mkOpts = (subCfg, groupKey, curSel) =>
+      subCfg.options.map(opt => {
+        const sel = opt === curSel ? 'is-selected' : '';
+        return `<button class="bnv-option ${sel}" data-val="${this._esc(opt)}" data-group="${groupKey}">
+          <span class="bnv-opt-indicator"></span><span>${opt}</span>
+        </button>`;
+      }).join('');
+    return `
+      <div class="bnv-step-no">ステップ 2 / 4</div>
+      <div class="bnv-dual-sub-q">${cfg.sub1.question}</div>
+      <div class="bnv-options col-3">${mkOpts(cfg.sub1, 'sub1', selA)}</div>
+      <hr class="bnv-dual-hr">
+      <div class="bnv-dual-sub-q">${cfg.sub2.question}</div>
+      <div class="bnv-options col-3">${mkOpts(cfg.sub2, 'sub2', selB)}</div>
+      <div class="bnv-nav">
+        <button class="bnv-btn-back" id="bnv-back">← 前の質問に戻る</button>
+        <button class="bnv-btn-next" id="bnv-next" ${bothFilled ? '' : 'disabled'}>次へ →</button>
+      </div>`;
+  }
+
+  // =====================================================================
+  //  select ステップ（Step2 / ドロップダウン）
+  // =====================================================================
+  _renderSelect(cfg) {
+    const cur = this.state.ans2[0] || '';
+    const opts = cfg.options.map(opt =>
+      `<option value="${this._esc(opt)}" ${opt === cur ? 'selected' : ''}>${opt}</option>`
+    ).join('');
+    return `
+      <div class="bnv-step-no">ステップ 2 / 4</div>
+      <div class="bnv-question">${cfg.question}</div>
+      <div class="bnv-select-wrap">
+        <select class="bnv-select" id="bnv-sel">
+          <option value="" disabled ${!cur ? 'selected' : ''}>選択してください</option>
+          ${opts}
+        </select>
+      </div>
+      <div class="bnv-nav">
+        <button class="bnv-btn-back" id="bnv-back">← 前の質問に戻る</button>
+        <span></span>
+      </div>`;
+  }
+
+  // =====================================================================
+  //  緊急度ステップ（Step3）
+  // =====================================================================
+  _renderUrgency() {
+    const sel = this.state.ans3;
+    return `
+      <div class="bnv-step-no">ステップ 3 / 4</div>
+      <div class="bnv-question">弁護士への相談、今どのくらい急いでいますか？</div>
+      <div class="bnv-urgency-grid">
+        <button class="bnv-urgency-btn ${sel === 'urgent' ? 'is-selected' : ''}" data-urgency="urgent">
+          <span class="bnv-urgency-icon">🔥</span>
+          <div class="bnv-urgency-label">なるべく早く<br>対応したい</div>
+          <div class="bnv-urgency-sub">相手から連絡・<br>通知が届いている</div>
+        </button>
+        <button class="bnv-urgency-btn ${sel === 'info' ? 'is-selected' : ''}" data-urgency="info">
+          <span class="bnv-urgency-icon">💬</span>
+          <div class="bnv-urgency-label">まずは<br>情報収集したい</div>
+          <div class="bnv-urgency-sub">気軽に相談して<br>状況を整理したい</div>
+        </button>
+      </div>
+      <div class="bnv-nav">
+        <button class="bnv-btn-back" id="bnv-back">← 前の質問に戻る</button>
+        <span></span>
+      </div>`;
+  }
+
+  // =====================================================================
+  //  最終CTA（Step4）
+  // =====================================================================
+  _renderFinal() {
+    const { ans1, ans2, ans3 } = this.state;
+    const urgencyLabel = ans3 === 'urgent' ? 'なるべく早く対応したい' : 'まずは情報収集したい';
+    const ctaText      = ans3 === 'urgent'
+      ? `今すぐ弁護士${this.lawyer}にメールで聞いてみる`
+      : `弁護士${this.lawyer}にメールで聞いてみる`;
+
+    return `
+      <div class="bnv-step-no">ステップ 4 / 4</div>
+      <div class="bnv-question">あなたの状況を確認しました</div>
+
+      <div class="bnv-summary">
+        <div class="bnv-summary-title">✅ 入力内容の確認</div>
+        <div class="bnv-summary-row">${ans1.join('、') || '未選択'}</div>
+        <div class="bnv-summary-row">${ans2.join('、') || '未選択'}</div>
+        <div class="bnv-summary-row">${urgencyLabel}</div>
+      </div>
+
+      <form id="bnv-form" action="${this._esc(this.formUrl)}" method="POST">
+        <input type="hidden" name="chart_media"    value="${this.media}">
+        <input type="hidden" name="chart_step1"    value="${this._esc(ans1.join('、'))}">
+        <input type="hidden" name="chart_step2"    value="${this._esc(ans2.join('、'))}">
+        <input type="hidden" name="chart_urgency"  value="${this._esc(urgencyLabel)}">
+
+        <div class="bnv-form-group">
+          <label class="bnv-label">お名前<span class="req">*</span></label>
+          <input class="bnv-input" type="text" name="name"
+                 placeholder="山田 太郎" autocomplete="name" required>
+        </div>
+        <div class="bnv-form-group">
+          <label class="bnv-label">メールアドレス<span class="req">*</span></label>
+          <input class="bnv-input" type="email" name="email"
+                 placeholder="example@email.com" autocomplete="email" required>
+        </div>
+        <div class="bnv-form-group">
+          <label class="bnv-label">電話番号<span class="req">*</span></label>
+          <input class="bnv-input" type="tel" name="phone"
+                 placeholder="090-1234-5678" autocomplete="tel" required>
+        </div>
+
+        <button type="submit" class="bnv-submit">${ctaText}</button>
+
+      </form>
+
+      <div class="bnv-nav">
+        <button class="bnv-btn-back" id="bnv-back">← 前の質問に戻る</button>
+        <span></span>
+      </div>`;
+  }
+
+  // =====================================================================
+  //  完了画面
+  // =====================================================================
+  _renderComplete() {
+    this.el.querySelector('.bnv-body').innerHTML = `
+      <div class="bnv-complete">
+        <div class="bnv-complete-icon">✅</div>
+        <div class="bnv-complete-title">送信が完了しました</div>
+        <div class="bnv-complete-text">
+          弁護士${this.lawyer}より<br>
+          通常1〜3営業日以内に返信が届きます。<br><br>
+          ご登録のメールアドレスに確認メールをお送りしました。
+        </div>
+      </div>`;
+  }
+
+  // =====================================================================
+  //  イベントバインド
+  // =====================================================================
+  _bind() {
+    const { step } = this.state;
+    const isCheck  = step === 1
+      ? this.cfg.step1.type === 'checkbox'
+      : step === 2
+        ? this._step2cfg().type === 'checkbox'
+        : false;
+
+    // 選択肢クリック
+    this.el.querySelectorAll('.bnv-option').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const val    = btn.dataset.val;
+        const group  = btn.dataset.group;
+        const ansKey = step === 1 ? 'ans1' : 'ans2';
+
+        // dual型: グループ別に ans2[0]/ans2[1] に格納・自動進行なし
+        if (group) {
+          const arr = [...(this.state.ans2 || [])];
+          if (group === 'sub1') arr[0] = val;
+          else                  arr[1] = val;
+          this.state.ans2 = arr;
+          this._render();
+          return;
+        }
+
+        if (isCheck) {
+          // チェックボックス: トグル
+          const arr = this.state[ansKey];
+          const idx = arr.indexOf(val);
+          idx === -1 ? arr.push(val) : arr.splice(idx, 1);
+          this._render();
+        } else {
+          // ラジオ: 即時選択 & 自動進行
+          this.state[ansKey] = [val];
+          // 次ステップ前に次のansをリセット
+          if (step === 1) this.state.ans2 = [];
+          this.state.step++;
+          this._render();
+          this._scrollToTop();
+        }
+      });
+    });
+
+    // select型: 自動進行
+    const selEl = this.el.querySelector('#bnv-sel');
+    if (selEl) {
+      selEl.addEventListener('change', () => {
+        if (!selEl.value) return;
+        this.state.ans2 = [selEl.value];
+        this.state.step++;
+        this._render();
+        this._scrollToTop();
+      });
+    }
+
+    // 「次へ」ボタン（チェックボックス用）
+    const nextBtn = this.el.querySelector('#bnv-next');
+    if (nextBtn) {
+      nextBtn.addEventListener('click', () => {
+        if (step === 1) this.state.ans2 = [];
+        this.state.step++;
+        this._render();
+        this._scrollToTop();
+      });
+    }
+
+    // 「戻る」ボタン
+    const backBtn = this.el.querySelector('#bnv-back');
+    if (backBtn) {
+      backBtn.addEventListener('click', () => {
+        this.state.step--;
+        this._render();
+        this._scrollToTop();
+      });
+    }
+
+    // 「もっと見る」トグル（peekモード）
+    const moreToggle = this.el.querySelector('#bnv-more');
+    if (moreToggle) {
+      moreToggle.addEventListener('click', () => {
+        const wrap = this.el.querySelector('#bnv-opts-wrap');
+        const expanded = moreToggle.dataset.expanded === 'true';
+        if (wrap) wrap.classList.toggle('is-expanded');
+        moreToggle.dataset.expanded = String(!expanded);
+        moreToggle.textContent = !expanded ? '🔺 閉じる' : '🔻 もっと見る';
+      });
+    }
+
+    // 緊急度ボタン（自動進行）
+    this.el.querySelectorAll('.bnv-urgency-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        this.state.ans3 = btn.dataset.urgency;
+        this.state.step = 4;
+        this._render();
+        this._scrollToTop();
+      });
+    });
+
+    // フォーム送信
+    const form = this.el.querySelector('#bnv-form');
+    if (form) {
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        // ▼ 実装時: fetch で実際のエンドポイントに POST する
+        // const data = new FormData(form);
+        // fetch(this.formUrl, { method: 'POST', body: data, ... })
+        this._renderComplete();
+      });
+    }
+  }
+
+  // スクロールをチャートの先頭に戻す
+  _scrollToTop() {
+    const top = this.el.getBoundingClientRect().top + window.scrollY - 80;
+    window.scrollTo({ top, behavior: 'smooth' });
+  }
+
+  // XSS対策
+  _esc(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+}
+
+// =====================================================================
+//  初期化
+// =====================================================================
+document.querySelectorAll('.bnv-chart-cta').forEach(el => new BnvChart(el));
+
+})();
+</script>
+
+</body>
+</html>
